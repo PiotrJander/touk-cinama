@@ -5,8 +5,6 @@ case class ReservationId(id: String) extends AnyVal
 case class Reservation(id: ReservationId,
                        screening: Screening,
                        name: FullName,
-                       adultTickets: Int,
-                       studentTickets: Int,
-                       childTickets: Int,
+                       ticketsBreakdown: TicketsBreakdown,
                        seats: Seq[Seat],
                        confirmed: Boolean)

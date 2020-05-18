@@ -1,11 +1,10 @@
 package me.piotrjander.cinema.infrastructure.database.model
 
-import me.piotrjander.cinema.domain.entity.{ReservationId, ScreeningId, Seat}
+import me.piotrjander.cinema.domain.entity.{FullName, ReservationId, ScreeningId, Seat, TicketsBreakdown}
 
 case class Reservation(id: ReservationId,
                        screening: ScreeningId,
-                       adultTickets: Int,
-                       studentTickets: Int,
-                       childTickets: Int,
+                       name: FullName,
+                       ticketsBreakdown: TicketsBreakdown,
                        seats: Seq[Seat],
                        confirmed: Boolean)

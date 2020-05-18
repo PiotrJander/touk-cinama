@@ -16,4 +16,10 @@ class UnderlyingDatabase {
     val model.Screening(id, movieId, roomId, dateTime) = screeningModel
     entity.Screening(id, movies(movieId), screeningRooms(roomId), dateTime)
   }
+
+  def getReservationEntity(reservationModel: model.Reservation): entity.Reservation = {
+    val model.Reservation(id, screeningId, name, ticketsBreakdown, seats, confirmed) = reservationModel
+    val screening = getScreeningEntity(screenings(screeningId))
+    entity.Reservation(id, screening, name, ticketsBreakdown, seats, confirmed)
+  }
 }
