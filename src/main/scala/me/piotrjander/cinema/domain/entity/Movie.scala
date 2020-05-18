@@ -1,3 +1,5 @@
 package me.piotrjander.cinema.domain.entity
 
-case class Movie(title: String)
+case class MovieId(id: String) extends AnyVal
+
+case class Movie(id: MovieId, title: String)

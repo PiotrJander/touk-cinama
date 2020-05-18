@@ -3,7 +3,7 @@ package me.piotrjander.cinema.infrastructure.database.inmemory
 import java.time.LocalDateTime
 
 import cats.Id
-import me.piotrjander.cinema.domain.entity.Screening
+import me.piotrjander.cinema.domain.entity.{Screening, ScreeningId}
 import me.piotrjander.cinema.domain.repository.ScreeningRepository
 
 class ScreeningDatabaseView(db: UnderlyingDatabase)
@@ -16,6 +16,7 @@ class ScreeningDatabaseView(db: UnderlyingDatabase)
       .map(s => db.getScreeningEntity(s))
       .toSeq
 
-  override def get(id: String): Id[Option[Screening]] = ???
+  override def get(id: ScreeningId): Id[Option[Screening]] =
+    db.screenings.get(id).map(s => db.getScreeningEntity(s))
 
 }

@@ -1,6 +1,8 @@
 package me.piotrjander.cinema.domain.entity
 
-case class Reservation(id: String,
+case class ReservationId(id: String) extends AnyVal
+
+case class Reservation(id: ReservationId,
                        screening: Screening,
                        name: FullName,
                        adultTickets: Int,

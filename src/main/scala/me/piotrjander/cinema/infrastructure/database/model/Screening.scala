@@ -2,7 +2,7 @@ package me.piotrjander.cinema.infrastructure.database.model
 
 import java.time.LocalDateTime
 
-case class ScreeningId(id: String) extends AnyVal
+import me.piotrjander.cinema.domain.entity.{MovieId, ScreeningId, ScreeningRoomId}
 
 case class Screening(id: ScreeningId,
                      movie: MovieId,
