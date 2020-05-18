@@ -1,0 +1,23 @@
+###########
+## Scala ##
+###########
+
+target
+target/
+*.class
+*.log
+
+############
+## System ##
+############
+
+# OSX
+.DS_Store
+
+######################
+## Tooling Specific ##
+######################
+
+*/.idea
+.idea/
+*.iml
