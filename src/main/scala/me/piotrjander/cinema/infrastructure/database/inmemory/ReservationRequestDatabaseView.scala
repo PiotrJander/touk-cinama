@@ -2,24 +2,22 @@ package me.piotrjander.cinema.infrastructure.database.inmemory
 
 import java.time.LocalDateTime
 
+import cats.effect.Sync
 import me.piotrjander.cinema.domain.entity
 import me.piotrjander.cinema.domain.entity.ReservationId
 import me.piotrjander.cinema.domain.repository.ReservationRequestRepository
 import me.piotrjander.cinema.infrastructure.database.model
 
-import scala.util.Try
+class ReservationRequestDatabaseView[F[_]: Sync](db: UnderlyingDatabase)
+    extends ReservationRequestRepository[F] {
 
-class ReservationRequestDatabaseView(db: UnderlyingDatabase)
-    extends ReservationRequestRepository[Try] {
+  val F: Sync[F] = implicitly[Sync[F]]
 
   override def create(
     reservationRequest: entity.ReservationRequest
-  ): Try[Unit] = Try {
+  ): F[Unit] = F.delay {
     val entity.ReservationRequest(reservation, secret, submittedTime) =
       reservationRequest
-    if (!db.reservations.contains(reservation.id.get)) {
-      throw new BadDatabaseRequest("Associated reservation doesn't exist")
-    }
     val reservationRequestModel =
       model.ReservationRequest(reservation.id.get, secret, submittedTime)
     db.reservationRequests += (reservation.id.get -> reservationRequestModel)
@@ -27,22 +25,17 @@ class ReservationRequestDatabaseView(db: UnderlyingDatabase)
 
   override def list(
     beforeTime: LocalDateTime
-  ): Try[Seq[entity.ReservationRequest]] = Try {
+  ): F[Seq[entity.ReservationRequest]] = F.delay {
     db.reservationRequests.values
       .filter(rr => rr.submittedTime.isBefore(beforeTime))
       .map(rr => {
-        val model.ReservationRequest(id, secret, submittedTime) = rr
-        val reservation = db.getReservationEntity(db.reservations(id))
-        entity.ReservationRequest(reservation, secret, submittedTime)
+        val reservation = db.getReservationEntity(db.reservations(rr.reservation))
+        entity.ReservationRequest(reservation, rr.requestSecret, rr.submittedTime)
       })
       .toSeq
   }
 
-  override def delete(id: ReservationId): Try[Unit] = Try {
-    if (db.reservationRequests.contains(id)) {
-      db.reservationRequests -= id
-    } else {
-      throw new BadDatabaseRequest("Not found")
-    }
+  override def delete(id: ReservationId): F[Unit] = F.delay {
+    db.reservationRequests -= id
   }
 }
