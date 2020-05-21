@@ -4,18 +4,16 @@ import java.time.LocalDateTime
 
 import cats.effect.Sync
 import me.piotrjander.cinema.domain.entity
-import me.piotrjander.cinema.domain.entity.ReservationId
+import me.piotrjander.cinema.domain.entity.{ReservationId, ReservationRequest}
 import me.piotrjander.cinema.domain.repository.ReservationRequestRepository
 import me.piotrjander.cinema.infrastructure.database.model
 
 class ReservationRequestDatabaseView[F[_]: Sync](db: UnderlyingDatabase)
     extends ReservationRequestRepository[F] {
 
-  val F: Sync[F] = implicitly[Sync[F]]
-
   override def create(
     reservationRequest: entity.ReservationRequest
-  ): F[Unit] = F.delay {
+  ): F[Unit] = Sync[F].delay {
     val entity.ReservationRequest(reservation, secret, submittedTime) =
       reservationRequest
     val reservationRequestModel =
@@ -25,7 +23,7 @@ class ReservationRequestDatabaseView[F[_]: Sync](db: UnderlyingDatabase)
 
   override def list(
     beforeTime: LocalDateTime
-  ): F[Seq[entity.ReservationRequest]] = F.delay {
+  ): F[Seq[entity.ReservationRequest]] = Sync[F].delay {
     db.reservationRequests.values
       .filter(rr => rr.submittedTime.isBefore(beforeTime))
       .map(rr => {
@@ -35,7 +33,11 @@ class ReservationRequestDatabaseView[F[_]: Sync](db: UnderlyingDatabase)
       .toSeq
   }
 
-  override def delete(id: ReservationId): F[Unit] = F.delay {
+  override def get(id: ReservationId): F[Option[ReservationRequest]] = Sync[F].delay {
+    db.reservationRequests.get(id)
+  }
+
+  override def delete(id: ReservationId): F[Unit] = Sync[F].delay {
     db.reservationRequests -= id
   }
 }

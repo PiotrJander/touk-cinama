@@ -1,5 +1,7 @@
 package me.piotrjander.cinema.main
 
+import java.time.Duration
+
 import cats.implicits._
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -10,8 +12,8 @@ import scala.collection.immutable.HashMap
 
 object CinemaReservations {
 
-  val RESERVATION_TIMEOUT_MINUTES: Long = 15
-  val RESERVATION_BEFORE_START_MINUTES: Long = 15
+  val RESERVATION_TIMEOUT: Duration = Duration.ofMinutes(15)
+  val RESERVATION_BEFORE_START: Duration = Duration.ofMinutes(15)
 
   def testFullNameValidator(): Unit = {
     val validator = new FullNameValidator[Either[Throwable, *]]()

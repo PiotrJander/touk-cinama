@@ -12,28 +12,37 @@ object EntityPayloads {
       Movie(e.id.get.id, e.title)
   }
 
-  case class ScreeningRoom(id: String, name: String, seats: Map[String, Seq[String]])
+  case class ScreeningRoom(id: String,
+                           name: String,
+                           seats: Map[String, Seq[String]])
 
   object ScreeningRoom {
     def fromEntity(e: entity.ScreeningRoom): ScreeningRoom =
       ScreeningRoom(e.id.get.id, e.name, e.seats)
   }
 
-  case class Screening(id: String,
-                       movie: Movie,
-                       roomName: String,
-                       seatAvailability: Map[String, Map[String, Boolean]],
-                       dateTime: String)
+  case class ScreeningSummary(id: String,
+                              movie: Movie,
+                              roomName: String,
+                              dateTime: String)
 
-  object Screening {
-    def fromEntity(e: entity.Screening, availability: ScreeningSeatAvailability): Screening =
-      Screening(
+  object ScreeningSummary {
+    def fromEntity(e: entity.Screening): ScreeningSummary =
+      ScreeningSummary(
         e.id.get.id,
         Movie.fromEntity(e.movie),
         e.room.name,
-        availability.seats,
         e.dateTime.toString
       )
+  }
+
+  case class Screening(summary: ScreeningSummary,
+                       seatAvailability: Map[String, Map[String, Boolean]])
+
+  object Screening {
+    def fromEntity(e: entity.Screening,
+                   availability: ScreeningSeatAvailability): Screening =
+      Screening(ScreeningSummary.fromEntity(e), availability.seats)
   }
 
   case class Reservation(id: String,

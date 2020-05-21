@@ -10,6 +10,8 @@ trait ReservationRequestRepository[F[_]] {
 
   def list(beforeTime: LocalDateTime): F[Seq[ReservationRequest]]
 
+  def get(id: ReservationId): F[Option[ReservationRequest]]
+
   def delete(id: ReservationId): F[Unit]
 
 }
