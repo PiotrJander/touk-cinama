@@ -7,11 +7,11 @@ import cats.MonadError
 
 class DateTimeValidator[F[_]](implicit F: MonadError[F, Throwable]) {
 
-  def parse(dateTime: String): F[LocalDateTime] = {
-    try F.pure(LocalDateTime.parse(dateTime))
+  def parse(input: String): F[LocalDateTime] = {
+    try F.pure(LocalDateTime.parse(input))
     catch {
       case _: DateTimeParseException =>
-        F.raiseError(new ValidationError())
+        F.raiseError(new ValidationException())
     }
   }
 }

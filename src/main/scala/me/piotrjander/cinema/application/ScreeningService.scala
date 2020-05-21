@@ -12,7 +12,7 @@ class ScreeningService[F[_]: Async](screeningRepository: ScreeningRepository[F],
 
   val F: Async[F] = implicitly[Async[F]]
 
-  val dateTimeValidator = new DateTimeValidator()
+  val dateTimeValidator = new DateTimeValidator[F]()
 
   override def list(request: ListRequest): F[ListResponse] =
     for {

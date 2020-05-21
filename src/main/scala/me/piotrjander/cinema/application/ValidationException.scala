@@ -1,6 +1,6 @@
 package me.piotrjander.cinema.application
 
-class ValidationError(msg: String) extends Exception(msg) {
+class ValidationException(msg: String) extends BadRequestException(msg) {
 
   def this() {
     this("Validation error")
