@@ -66,14 +66,12 @@ object EntityPayloads {
 
   case class ReservationRequest(reservation: Reservation,
                                 secret: String,
-                                submittedTime: String)
+                                expirationTime: String,
+                                amountToPay: Float)
 
-  object ReservationRequest {
-    def fromEntity(e: entity.ReservationRequest): ReservationRequest =
-      ReservationRequest(
-        Reservation.fromEntity(e.reservation),
-        e.confirmationSecret.toString,
-        e.submittedTime.toString
-      )
+  trait ReservationRequestEncoder {
+    def fromEntity(
+      e: entity.ReservationRequest
+    ): ReservationRequest
   }
 }

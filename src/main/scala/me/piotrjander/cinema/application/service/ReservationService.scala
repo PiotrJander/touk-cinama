@@ -15,7 +15,8 @@ class ReservationService[F[_]: Async](
   reservationRepository: ReservationRepository[F],
   reservationRequestRepository: ReservationRequestRepository[F],
   localClock: LocalClock[F],
-  confirmationSecretGenerator: ConfirmationSecretGenerator[F]
+  confirmationSecretGenerator: ConfirmationSecretGenerator[F],
+  reservationRequestEncoder: EntityPayloads.ReservationRequestEncoder
 ) extends ReservationServiceApi[F] {
 
   val F: Async[F] = implicitly[Async[F]]
@@ -39,7 +40,7 @@ class ReservationService[F[_]: Async](
         ReservationRequest(createdReservation, confirmationSecret, dateTimeNow)
       _ <- reservationRequestRepository.create(reservationRequest)
     } yield {
-      val payload = EntityPayloads.ReservationRequest.fromEntity(reservationRequest)
+      val payload = reservationRequestEncoder.fromEntity(reservationRequest)
       CreateResponse(payload)
     }
   }
