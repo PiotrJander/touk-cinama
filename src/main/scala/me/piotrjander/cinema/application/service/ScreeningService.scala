@@ -2,14 +2,20 @@ package me.piotrjander.cinema.application.service
 
 import cats.effect.Async
 import cats.implicits._
+import cats.data.OptionT
 import me.piotrjander.cinema.application.message.ScreeningMessage._
 import me.piotrjander.cinema.application.validator.DateTimeValidator
-import me.piotrjander.cinema.application.{EntityPayloads, LocalClock}
+import me.piotrjander.cinema.application.{
+  EntityPayloads,
+  LocalClock,
+  SeatAvailability
+}
 import me.piotrjander.cinema.domain.entity.ScreeningId
 import me.piotrjander.cinema.domain.repository.ScreeningRepository
 
 class ScreeningService[F[_]: Async](screeningRepository: ScreeningRepository[F],
-                                    localClock: LocalClock[F])
+                                    localClock: LocalClock[F],
+                                    seatAvailability: SeatAvailability[F])
     extends ScreeningServiceApi[F] {
 
   val F: Async[F] = implicitly[Async[F]]
@@ -25,17 +31,18 @@ class ScreeningService[F[_]: Async](screeningRepository: ScreeningRepository[F],
       screenings <- screeningRepository.list(startDateTime, endDateTime)
     } yield {
       val screeningPayloads =
-        screenings.map(s => EntityPayloads.Screening.fromEntity(s))
+        screenings.map(s => EntityPayloads.ScreeningSummary.fromEntity(s))
       ListResponse(screeningPayloads)
     }
 
-  override def get(screeningId: GetRequest): F[Option[GetResponse]] =
-    for {
-      maybeScreening <- screeningRepository.get(ScreeningId(screeningId.id))
+  override def get(screeningId: GetRequest): F[Option[GetResponse]] = {
+    val result = for {
+      screening <- OptionT(screeningRepository.get(ScreeningId(screeningId.id)))
+      seatAvailability <- OptionT.liftF(seatAvailability.getAvailableSeats(screening))
     } yield {
-      maybeScreening.map { s =>
-        val screening = EntityPayloads.Screening.fromEntity(s)
-        GetResponse(screening)
-      }
+      val screening = EntityPayloads.Screening.fromEntity(screening, seatAvailability)
+      GetResponse(screening)
     }
+    result.value
+  }
 }
