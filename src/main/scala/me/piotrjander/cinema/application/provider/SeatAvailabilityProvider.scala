@@ -2,8 +2,10 @@ package me.piotrjander.cinema.application.provider
 
 import java.time.LocalDateTime
 
+import cats.Applicative
 import cats.effect.Sync
 import cats.implicits._
+import me.piotrjander.cinema.application.exception.BadRequestException
 import me.piotrjander.cinema.domain.entity._
 import me.piotrjander.cinema.domain.repository._
 
@@ -25,7 +27,10 @@ class SeatAvailabilityProvider[F[_]: Sync](
   ): Seq[Reservation] =
     (reservations zip requests).foldRight(Vector.empty[Reservation]) {
       case ((reservation, Some(request)), acc)
-          if reservationRequestExpirationChecker.isExpired(request, dateTimeNow) =>
+          if reservationRequestExpirationChecker.isExpired(
+            request,
+            dateTimeNow
+          ) =>
         reservation +: acc
       case (_, acc) =>
         acc
@@ -38,19 +43,61 @@ class SeatAvailabilityProvider[F[_]: Sync](
       reservations <- reservationRepository.list(screening.id.get)
       confirmedReservations = reservations.filter(_.confirmed)
       unconfirmedReservations = reservations.filter(!_.confirmed).toVector
-      reservationRequests <- unconfirmedReservations.traverse(r => reservationRequestRepository.get(r.id.get))
+      reservationRequests <- unconfirmedReservations.traverse(
+        r => reservationRequestRepository.get(r.id.get)
+      )
       dateTimeNow <- localClock.dateTimeNow()
       validReservations = confirmedReservations ++
-        unconfirmedValidReservations(unconfirmedReservations, reservationRequests, dateTimeNow)
+        unconfirmedValidReservations(
+          unconfirmedReservations,
+          reservationRequests,
+          dateTimeNow
+        )
     } yield calculateAvailableSeats(screening, validReservations)
+  }
+
+  private def checkReservedSeatsAvailable(
+    availability: ScreeningSeatAvailability,
+    seats: Seq[Seat]
+  ): F[Unit] = {
+    for (Seat(row, seat) <- seats) {
+      if (!availability.seats(row)(seat)) {
+        return Sync[F].raiseError(new BadRequestException())
+      }
+    }
+    Sync[F].unit
+  }
+
+  private def checkNoEmptySeatBetweenReserved(
+    availability: ScreeningSeatAvailability,
+    seats: Seq[Seat],
+    room: ScreeningRoom
+  ): F[Unit] = {
+    for ((row, seats) <- seats.groupBy(_.row)) {
+      val reservedSeats = seats.map(_.name).toSet
+      val rowSeats = room.seats(row)
+      if (rowSeats.length >= 2) {
+        for (i <- 2 until rowSeats.length) {
+          val reserved0 = reservedSeats.contains(rowSeats(i))
+          val reserved1 = reservedSeats.contains(rowSeats(i - 1))
+          val reserved2 = reservedSeats.contains(rowSeats(i - 2))
+          val empty1 = !reserved1 && !availability.seats(row)(rowSeats(i - 1))
+          if (reserved0 && reserved2 && empty1) {
+            Sync[F].raiseError(new BadRequestException())
+          }
+        }
+      }
+    }
+    Applicative[F].unit
   }
 
   override def validateSeatSelection(screening: Screening,
                                      seats: Seq[Seat]): F[Unit] =
-    ???
-//    for {
-//      ScreeningSeatAvailability(availableSeats) <- getAvailableSeats(screening)
-//    } yield ???
+    for {
+      availability <- getAvailableSeats(screening)
+      _ <- checkReservedSeatsAvailable(availability, seats)
+      _ <- checkNoEmptySeatBetweenReserved(availability, seats, screening.room)
+    } yield ()
 }
 
 object SeatAvailabilityProvider {
