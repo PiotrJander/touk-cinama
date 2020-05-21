@@ -7,7 +7,6 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 import me.piotrjander.cinema.application.provider.SeatAvailabilityProvider
 import me.piotrjander.cinema.application.validator.FullNameValidator
-import me.piotrjander.cinema.domain.entity
 import me.piotrjander.cinema.domain.entity.{FullName, ScreeningRoom, ScreeningSeatAvailability, Seat, TicketPrices}
 
 import scala.collection.immutable.HashMap
