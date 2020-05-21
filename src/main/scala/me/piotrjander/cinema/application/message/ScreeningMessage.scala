@@ -1,8 +1,8 @@
-package me.piotrjander.cinema.application
+package me.piotrjander.cinema.application.message
 
-import EntityPayloads.Screening
+import me.piotrjander.cinema.application.EntityPayloads.Screening
 
-object ScreeningMessages {
+object ScreeningMessage {
 
   case class ListRequest(startDateTime: String, endDateTime: String)
 
@@ -11,4 +11,5 @@ object ScreeningMessages {
   case class GetRequest(id: String)
 
   case class GetResponse(screening: Screening)
+
 }

@@ -1,11 +1,14 @@
-package me.piotrjander.cinema.application
+package me.piotrjander.cinema.application.service
 
 import cats.ApplicativeError
-import cats.implicits._
 import cats.effect.Async
+import cats.implicits._
+import me.piotrjander.cinema.application.LocalClock
+import me.piotrjander.cinema.application.message.ReservationMessage._
+import me.piotrjander.cinema.application.exception.BadRequestException
+import me.piotrjander.cinema.application.validator.{FullNameValidator, TicketsBreakdownValidator}
+import me.piotrjander.cinema.domain.entity.ScreeningId
 import me.piotrjander.cinema.domain.repository._
-import me.piotrjander.cinema.application.ReservationMessages._
-import me.piotrjander.cinema.domain.entity.{Reservation, ScreeningId}
 
 class ReservationService[F[_]: Async](
   screeningRepository: ScreeningRepository[F],
@@ -22,8 +25,10 @@ class ReservationService[F[_]: Async](
 
     for {
       maybeScreening <- screeningRepository.get(ScreeningId(request.screeningId))
-      screening <- ApplicativeError.liftFromOption[F](maybeScreening, screeningNotFoundError)
-//      reservation = Reservation(None, screening, )
+      screening <- ApplicativeError.liftFromOption(maybeScreening, screeningNotFoundError)
+      name <- new FullNameValidator().parse(request.name)
+      _ <- new TicketsBreakdownValidator().validate(request.ticketsBreakdown)
+//      reservation = Reservation(None, screening, name, request.ticketsBreakdown, )
 //      foo <- reservationRepository.create()
     } yield ???
   }

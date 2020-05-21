@@ -1,10 +1,9 @@
-package me.piotrjander.cinema.application
+package me.piotrjander.cinema.application.message
 
-import EntityPayloads.ReservationRequest
-import EntityPayloads.Reservation
+import me.piotrjander.cinema.application.EntityPayloads.{Reservation, ReservationRequest}
 import me.piotrjander.cinema.domain.entity.TicketsBreakdown
 
-object ReservationMessages {
+object ReservationMessage {
 
   case class CreateRequest(screeningId: String,
                            name: String,

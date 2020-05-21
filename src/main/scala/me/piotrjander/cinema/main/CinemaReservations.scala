@@ -1,7 +1,7 @@
 package me.piotrjander.cinema.main
 
-import me.piotrjander.cinema.application.FullNameValidator
 import cats.implicits._
+import me.piotrjander.cinema.application.validator.FullNameValidator
 import me.piotrjander.cinema.domain.entity.FullName
 
 object CinemaReservations {
@@ -11,7 +11,7 @@ object CinemaReservations {
 
   def main(args: Array[String]): Unit = {
     val validator = new FullNameValidator[Either[Throwable, *]]()
-    val result0 = validator.parse("Piotr Jan-Der")
-    assert(result0.toOption.get == FullName("Piotr", "Jan-Der"))
+    val result0 = validator.parse("Piątr Jan-Śer")
+    assert(result0.toOption.get == FullName("Piątr", "Jan-Śer"))
   }
 }
