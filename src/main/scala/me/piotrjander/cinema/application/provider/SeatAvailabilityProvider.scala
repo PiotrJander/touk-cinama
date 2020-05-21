@@ -2,7 +2,7 @@ package me.piotrjander.cinema.application.provider
 
 import java.time.LocalDateTime
 
-import cats.Applicative
+import cats.{Applicative, MonadError}
 import cats.effect.Sync
 import cats.implicits._
 import me.piotrjander.cinema.application.exception.BadRequestException
@@ -56,19 +56,30 @@ class SeatAvailabilityProvider[F[_]: Sync](
     } yield calculateAvailableSeats(screening, validReservations)
   }
 
-  private def checkReservedSeatsAvailable(
+  override def validateSeatSelection(screening: Screening,
+                                     seats: Seq[Seat]): F[Unit] =
+    for {
+      availability <- getAvailableSeats(screening)
+      _ <- checkReservedSeatsAvailable(availability, seats)
+      _ <- checkNoEmptySeatBetweenReserved(availability, seats, screening.room)
+    } yield ()
+}
+
+object SeatAvailabilityProvider {
+
+  private def checkReservedSeatsAvailable[F[_]: MonadError[*, Throwable]](
     availability: ScreeningSeatAvailability,
     seats: Seq[Seat]
   ): F[Unit] = {
     for (Seat(row, seat) <- seats) {
       if (!availability.seats(row)(seat)) {
-        return Sync[F].raiseError(new BadRequestException())
+        return MonadError[F, Throwable].raiseError(new BadRequestException())
       }
     }
-    Sync[F].unit
+    Applicative[F].unit
   }
 
-  private def checkNoEmptySeatBetweenReserved(
+  private def checkNoEmptySeatBetweenReserved[F[_]: MonadError[*, Throwable]](
     availability: ScreeningSeatAvailability,
     seats: Seq[Seat],
     room: ScreeningRoom
@@ -83,24 +94,13 @@ class SeatAvailabilityProvider[F[_]: Sync](
           val reserved2 = reservedSeats.contains(rowSeats(i - 2))
           val empty1 = !reserved1 && !availability.seats(row)(rowSeats(i - 1))
           if (reserved0 && reserved2 && empty1) {
-            Sync[F].raiseError(new BadRequestException())
+            MonadError[F, Throwable].raiseError(new BadRequestException())
           }
         }
       }
     }
     Applicative[F].unit
   }
-
-  override def validateSeatSelection(screening: Screening,
-                                     seats: Seq[Seat]): F[Unit] =
-    for {
-      availability <- getAvailableSeats(screening)
-      _ <- checkReservedSeatsAvailable(availability, seats)
-      _ <- checkNoEmptySeatBetweenReserved(availability, seats, screening.room)
-    } yield ()
-}
-
-object SeatAvailabilityProvider {
 
   private def calculateAvailableSeats(
     screening: Screening,
