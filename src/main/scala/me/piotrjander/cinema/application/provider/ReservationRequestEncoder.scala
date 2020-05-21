@@ -1,6 +1,8 @@
-package me.piotrjander.cinema.application
+package me.piotrjander.cinema.application.provider
+
 import java.time.Duration
 
+import me.piotrjander.cinema.application.EntityPayloads
 import me.piotrjander.cinema.domain.entity.{ReservationRequest, TicketPrices}
 
 class ReservationRequestEncoder(reservationTimeout: Duration,

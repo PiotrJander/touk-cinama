@@ -1,4 +1,4 @@
-package me.piotrjander.cinema.application
+package me.piotrjander.cinema.application.provider
 
 import java.time.{Duration, LocalDateTime}
 

@@ -5,11 +5,8 @@ import cats.implicits._
 import cats.data.OptionT
 import me.piotrjander.cinema.application.message.ScreeningMessage._
 import me.piotrjander.cinema.application.validator.DateTimeValidator
-import me.piotrjander.cinema.application.{
-  EntityPayloads,
-  LocalClock,
-  SeatAvailability
-}
+import me.piotrjander.cinema.application.EntityPayloads
+import me.piotrjander.cinema.application.provider.{LocalClock, SeatAvailability}
 import me.piotrjander.cinema.domain.entity.ScreeningId
 import me.piotrjander.cinema.domain.repository.ScreeningRepository
 
