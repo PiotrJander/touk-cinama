@@ -1,6 +1,7 @@
 package me.piotrjander.cinema.application
 
 import me.piotrjander.cinema.domain.entity
+import me.piotrjander.cinema.domain.entity.{ScreeningSeatAvailability, Seat}
 
 object EntityPayloads {
 
@@ -11,24 +12,26 @@ object EntityPayloads {
       Movie(e.id.get.id, e.title)
   }
 
-  case class ScreeningRoom(id: String, name: String, seats: Seq[Seq[String]])
+  case class ScreeningRoom(id: String, name: String, seats: Map[String, Seq[String]])
 
   object ScreeningRoom {
     def fromEntity(e: entity.ScreeningRoom): ScreeningRoom =
-      ScreeningRoom(e.id.get.id, e.name, e.seats.map(_.map(_.name)))
+      ScreeningRoom(e.id.get.id, e.name, e.seats)
   }
 
   case class Screening(id: String,
                        movie: Movie,
-                       screening: ScreeningRoom,
+                       roomName: String,
+                       seatAvailability: Map[String, Map[String, Boolean]],
                        dateTime: String)
 
   object Screening {
-    def fromEntity(e: entity.Screening): Screening =
+    def fromEntity(e: entity.Screening, availability: ScreeningSeatAvailability): Screening =
       Screening(
         e.id.get.id,
         Movie.fromEntity(e.movie),
-        ScreeningRoom.fromEntity(e.room),
+        e.room.name,
+        availability.seats,
         e.dateTime.toString
       )
   }
@@ -37,7 +40,7 @@ object EntityPayloads {
                          screening: Screening,
                          name: String,
                          ticketsBreakdown: entity.TicketsBreakdown,
-                         seats: Seq[String],
+                         seats: Seq[Seat],
                          confirmed: Boolean)
 
   case class ReservationRequest(reservation: Reservation,

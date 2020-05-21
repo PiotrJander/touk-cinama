@@ -25,9 +25,9 @@ class ReservationService[F[_]: Async](
 
     for {
       maybeScreening <- screeningRepository.get(ScreeningId(request.screeningId))
-      screening <- ApplicativeError.liftFromOption(maybeScreening, screeningNotFoundError)
-      name <- new FullNameValidator().parse(request.name)
-      _ <- new TicketsBreakdownValidator().validate(request.ticketsBreakdown)
+      screening <- ApplicativeError.liftFromOption[F](maybeScreening, screeningNotFoundError)
+      name <- new FullNameValidator[F]().parse(request.name)
+      _ <- new TicketsBreakdownValidator[F]().validate(request.ticketsBreakdown)
 //      reservation = Reservation(None, screening, name, request.ticketsBreakdown, )
 //      foo <- reservationRepository.create()
     } yield ???

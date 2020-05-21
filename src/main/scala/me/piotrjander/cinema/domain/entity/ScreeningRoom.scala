@@ -4,4 +4,4 @@ case class ScreeningRoomId(id: String) extends AnyVal
 
 case class ScreeningRoom(id: Option[ScreeningRoomId],
                          name: String,
-                         seats: Seq[Seq[Seat]])
+                         seats: Map[String, Seq[String]])

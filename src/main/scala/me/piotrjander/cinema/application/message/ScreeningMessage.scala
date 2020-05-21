@@ -11,5 +11,4 @@ object ScreeningMessage {
   case class GetRequest(id: String)
 
   case class GetResponse(screening: Screening)
-
 }

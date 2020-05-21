@@ -53,9 +53,16 @@ scalacOptions in ThisBuild ++= Seq(
 //// Dependencies       ////
 ////////////////////////////
 
+val catsVersion = "2.0.0"
+val circeVersion = "0.12.3"
+
 libraryDependencies ++= Seq(
-  "org.typelevel" %% "cats-core"     % "2.0.0",
-  "org.typelevel" %% "cats-effect"   % "2.0.0"
+  "org.typelevel" %% "cats-core" % catsVersion,
+  "org.typelevel" %% "cats-effect" % catsVersion,
+  "io.circe" %% "circe-core" % circeVersion,
+  "io.circe" %% "circe-generic" % circeVersion,
+  "io.circe" %% "circe-parser" % circeVersion,
+  "de.heikoseeberger" %% "akka-http-circe" % "1.30.0"
 )
 
 addCompilerPlugin(
