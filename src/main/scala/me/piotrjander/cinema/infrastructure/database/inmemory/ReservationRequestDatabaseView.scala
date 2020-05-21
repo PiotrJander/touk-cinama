@@ -34,7 +34,8 @@ class ReservationRequestDatabaseView[F[_]: Sync](db: UnderlyingDatabase)
   }
 
   override def get(id: ReservationId): F[Option[ReservationRequest]] = Sync[F].delay {
-    db.reservationRequests.get(id)
+    val maybeReservationRequest = db.reservationRequests.get(id)
+    maybeReservationRequest.map(rr => db.getReservationRequestEntity(rr))
   }
 
   override def delete(id: ReservationId): F[Unit] = Sync[F].delay {

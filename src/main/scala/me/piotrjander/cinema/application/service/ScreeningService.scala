@@ -31,7 +31,10 @@ class ScreeningService[F[_]: Async](screeningRepository: ScreeningRepository[F],
       _ <- Applicative[F].whenA(endDateTime.isBefore(cutoffDateTime)) {
         Async[F].raiseError(new BadRequestException())
       }
-    } yield (Seq(startDateTime, cutoffDateTime).max, endDateTime)
+    } yield {
+      val start = Seq(startDateTime, cutoffDateTime).max
+      (start, endDateTime)
+    }
 
   override def list(request: ListRequest): F[ListResponse] =
     for {
@@ -50,9 +53,9 @@ class ScreeningService[F[_]: Async](screeningRepository: ScreeningRepository[F],
       screening <- OptionT(screeningRepository.get(ScreeningId(screeningId.id)))
       seatAvailability <- OptionT.liftF(seatAvailability.getAvailableSeats(screening))
     } yield {
-      val screening =
+      val screeningPayload =
         EntityPayloads.Screening.fromEntity(screening, seatAvailability)
-      GetResponse(screening)
+      GetResponse(screeningPayload)
     }
     result.value
   }

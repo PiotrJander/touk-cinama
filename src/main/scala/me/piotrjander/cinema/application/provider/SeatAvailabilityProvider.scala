@@ -18,10 +18,14 @@ class SeatAvailabilityProvider[F[_]: Sync](
 
   import SeatAvailabilityProvider._
 
-  private def unconfirmedValidReservations(reservations: Seq[Reservation], requests: Seq[Option[ReservationRequest]], dateTimeNow: LocalDateTime): Seq[Reservation] =
-    (reservations zip requests).foldRight(Vector.empty) {
+  private def unconfirmedValidReservations(
+    reservations: Seq[Reservation],
+    requests: Seq[Option[ReservationRequest]],
+    dateTimeNow: LocalDateTime
+  ): Seq[Reservation] =
+    (reservations zip requests).foldRight(Vector.empty[Reservation]) {
       case ((reservation, Some(request)), acc)
-        if reservationRequestExpirationChecker.isExpired(request, dateTimeNow) =>
+          if reservationRequestExpirationChecker.isExpired(request, dateTimeNow) =>
         reservation +: acc
       case (_, acc) =>
         acc
@@ -36,16 +40,25 @@ class SeatAvailabilityProvider[F[_]: Sync](
       unconfirmedReservations = reservations.filter(!_.confirmed).toVector
       reservationRequests <- unconfirmedReservations.traverse(r => reservationRequestRepository.get(r.id.get))
       dateTimeNow <- localClock.dateTimeNow()
-      validReservations =
-        confirmedReservations ++
-          unconfirmedValidReservations(unconfirmedReservations, reservationRequests, dateTimeNow)
+      validReservations = confirmedReservations ++
+        unconfirmedValidReservations(unconfirmedReservations, reservationRequests, dateTimeNow)
     } yield calculateAvailableSeats(screening, validReservations)
   }
+
+  override def validateSeatSelection(screening: Screening,
+                                     seats: Seq[Seat]): F[Unit] =
+    ???
+//    for {
+//      ScreeningSeatAvailability(availableSeats) <- getAvailableSeats(screening)
+//    } yield ???
 }
 
 object SeatAvailabilityProvider {
 
-  private def calculateAvailableSeats(screening: Screening, reservations: Seq[Reservation]): ScreeningSeatAvailability = {
+  private def calculateAvailableSeats(
+    screening: Screening,
+    reservations: Seq[Reservation]
+  ): ScreeningSeatAvailability = {
     val seats = reservations.flatMap(_.seats)
     val seatMap = mutable.Map.empty[String, mutable.Map[String, Boolean]]
 

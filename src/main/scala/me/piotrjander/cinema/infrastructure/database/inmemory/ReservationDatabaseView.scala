@@ -17,7 +17,7 @@ class ReservationDatabaseView[F[_]: Sync](db: UnderlyingDatabase) extends Reserv
   }
 
   override def list(screening: ScreeningId): F[Seq[Reservation]] = Sync[F].delay {
-    db.reservations.values.filter(_.screening == screening).toSeq
+    db.reservations.values.filter(_.screening == screening).map(r => db.getReservationEntity(r)).toSeq
   }
 
   override def get(id: ReservationId): F[Option[entity.Reservation]] = Sync[F].delay {

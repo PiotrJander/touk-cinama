@@ -29,4 +29,10 @@ class UnderlyingDatabase {
     val screening = getScreeningEntity(screenings(screeningId))
     entity.Reservation(Some(id), screening, name, ticketsBreakdown, seats, confirmed)
   }
+
+  def getReservationRequestEntity(reservationRequestModel: model.ReservationRequest): entity.ReservationRequest = {
+    val model.ReservationRequest(reservationId, confirmationSecret, submittedTime) = reservationRequestModel
+    val reservation = getReservationEntity(reservations(reservationId))
+    entity.ReservationRequest(reservation, confirmationSecret, submittedTime)
+  }
 }
