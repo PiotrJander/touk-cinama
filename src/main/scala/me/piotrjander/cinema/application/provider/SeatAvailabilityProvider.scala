@@ -2,7 +2,7 @@ package me.piotrjander.cinema.application.provider
 
 import java.time.LocalDateTime
 
-import cats.{Applicative, MonadError}
+import cats.MonadError
 import cats.effect.Sync
 import cats.implicits._
 import me.piotrjander.cinema.application.exception.BadRequestException
@@ -60,30 +60,30 @@ class SeatAvailabilityProvider[F[_]: Sync](
                                      seats: Seq[Seat]): F[Unit] =
     for {
       availability <- getAvailableSeats(screening)
-      _ <- checkReservedSeatsAvailable(availability, seats)
-      _ <- checkNoEmptySeatBetweenReserved(availability, seats, screening.room)
+      _ <- checkReservedSeatsAvailable[F](availability, seats)
+      _ <- checkNoEmptySeatBetweenReserved[F](availability, seats, screening.room)
     } yield ()
 }
 
 object SeatAvailabilityProvider {
 
-  private def checkReservedSeatsAvailable[F[_]: MonadError[*, Throwable]](
+  def checkReservedSeatsAvailable[F[_]](
     availability: ScreeningSeatAvailability,
     seats: Seq[Seat]
-  ): F[Unit] = {
-    for (Seat(row, seat) <- seats) {
-      if (!availability.seats(row)(seat)) {
-        return MonadError[F, Throwable].raiseError(new BadRequestException())
+  )(implicit F: MonadError[F, Throwable]): F[Unit] = {
+    for (seat <- seats) {
+      if (availability.isReserved(seat)) {
+        return F.raiseError(new BadRequestException())
       }
     }
-    Applicative[F].unit
+    F.unit
   }
 
-  private def checkNoEmptySeatBetweenReserved[F[_]: MonadError[*, Throwable]](
+  def checkNoEmptySeatBetweenReserved[F[_]](
     availability: ScreeningSeatAvailability,
     seats: Seq[Seat],
     room: ScreeningRoom
-  ): F[Unit] = {
+  )(implicit F: MonadError[F, Throwable]): F[Unit] = {
     for ((row, seats) <- seats.groupBy(_.row)) {
       val reservedSeats = seats.map(_.name).toSet
       val rowSeats = room.seats(row)
@@ -92,14 +92,14 @@ object SeatAvailabilityProvider {
           val reserved0 = reservedSeats.contains(rowSeats(i))
           val reserved1 = reservedSeats.contains(rowSeats(i - 1))
           val reserved2 = reservedSeats.contains(rowSeats(i - 2))
-          val empty1 = !reserved1 && !availability.seats(row)(rowSeats(i - 1))
+          val empty1 = !reserved1 && !availability.isReserved(row, rowSeats(i - 1))
           if (reserved0 && reserved2 && empty1) {
-            MonadError[F, Throwable].raiseError(new BadRequestException())
+            return F.raiseError(new BadRequestException())
           }
         }
       }
     }
-    Applicative[F].unit
+    F.unit
   }
 
   private def calculateAvailableSeats(

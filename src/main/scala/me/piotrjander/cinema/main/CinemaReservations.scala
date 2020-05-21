@@ -5,8 +5,10 @@ import java.time.Duration
 import cats.implicits._
 import io.circe.generic.auto._
 import io.circe.syntax._
+import me.piotrjander.cinema.application.provider.SeatAvailabilityProvider
 import me.piotrjander.cinema.application.validator.FullNameValidator
-import me.piotrjander.cinema.domain.entity.{FullName, TicketPrices}
+import me.piotrjander.cinema.domain.entity
+import me.piotrjander.cinema.domain.entity.{FullName, ScreeningRoom, ScreeningSeatAvailability, Seat, TicketPrices}
 
 import scala.collection.immutable.HashMap
 
@@ -28,7 +30,25 @@ object CinemaReservations {
     println(seats.asJson.toString())
   }
 
+  def testCheckReservedSeatsAvailable(): Unit = {
+    val rowA = Map("1" -> true, "2" -> false)
+    val availability = ScreeningSeatAvailability(Map("A" -> rowA))
+    val seats = Seq(Seat("A", "2"))
+    val result = SeatAvailabilityProvider.checkReservedSeatsAvailable[Either[Throwable, *]](availability, seats)
+    assert(result.isRight)
+  }
+
+  def testCheckNoEmptySeatBetweenReserved(): Unit = {
+    val room = ScreeningRoom(None, "", Map("A" -> Seq("1", "2", "3")))
+    val rowA = Map("1" -> false, "2" -> false, "3" -> false)
+    val availability = ScreeningSeatAvailability(Map("A" -> rowA))
+    val seats = Seq(Seat("A", "1"), Seat("A", "2"))
+    val result =
+      SeatAvailabilityProvider.checkNoEmptySeatBetweenReserved[Either[Throwable, *]](availability, seats, room)
+    assert(result.isRight)
+  }
+
   def main(args: Array[String]): Unit = {
-    testCirce()
+    testCheckNoEmptySeatBetweenReserved()
   }
 }
