@@ -34,6 +34,10 @@ object EntityPayloads {
         e.room.name,
         e.dateTime.toString
       )
+
+    implicit val ordering: Ordering[ScreeningSummary] =
+      Ordering.by[ScreeningSummary, String](_.movie.title)
+        .orElse(Ordering.by[ScreeningSummary, String](_.dateTime))
   }
 
   case class Screening(summary: ScreeningSummary,

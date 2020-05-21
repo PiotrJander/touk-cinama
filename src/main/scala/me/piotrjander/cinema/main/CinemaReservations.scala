@@ -6,7 +6,7 @@ import cats.implicits._
 import io.circe.generic.auto._
 import io.circe.syntax._
 import me.piotrjander.cinema.application.validator.FullNameValidator
-import me.piotrjander.cinema.domain.entity.FullName
+import me.piotrjander.cinema.domain.entity.{FullName, TicketPrices}
 
 import scala.collection.immutable.HashMap
 
@@ -14,6 +14,7 @@ object CinemaReservations {
 
   val RESERVATION_TIMEOUT: Duration = Duration.ofMinutes(15)
   val RESERVATION_BEFORE_START: Duration = Duration.ofMinutes(15)
+  val TICKET_PRICES: TicketPrices = TicketPrices(25, 18, 12.50f)
 
   def testFullNameValidator(): Unit = {
     val validator = new FullNameValidator[Either[Throwable, *]]()

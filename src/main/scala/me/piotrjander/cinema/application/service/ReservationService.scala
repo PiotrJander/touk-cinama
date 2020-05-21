@@ -8,7 +8,7 @@ import me.piotrjander.cinema.application.message.ReservationMessage._
 import me.piotrjander.cinema.application.exception.BadRequestException
 import me.piotrjander.cinema.application.provider.{ConfirmationSecretGenerator, LocalClock}
 import me.piotrjander.cinema.application.validator.{FullNameValidator, TicketsBreakdownValidator}
-import me.piotrjander.cinema.domain.entity.{Reservation, ReservationRequest, ScreeningId}
+import me.piotrjander.cinema.domain.entity.{Reservation, ReservationRequest, Screening, ScreeningId}
 import me.piotrjander.cinema.domain.repository._
 
 class ReservationService[F[_]: Async](
@@ -24,14 +24,22 @@ class ReservationService[F[_]: Async](
 
   def screeningNotFoundError = new BadRequestException("Screening not found")
 
+  private def getScreening(screeningId: ScreeningId): F[Screening] =
+    screeningRepository
+      .get(screeningId)
+      .flatMap(maybeScreening =>
+        ApplicativeError.liftFromOption[F](maybeScreening, screeningNotFoundError))
+
   override def create(request: CreateRequest): F[CreateResponse] = {
 
     for {
-      maybeScreening <- screeningRepository.get(ScreeningId(request.screeningId))
-      screening <- ApplicativeError.liftFromOption[F](maybeScreening, screeningNotFoundError)
+      // validate request
+      screening <- getScreening(ScreeningId(request.screeningId))
+      // TODO validate 15 mins
       name <- new FullNameValidator[F]().parse(request.name)
       _ <- new TicketsBreakdownValidator[F]().validate(request.ticketsBreakdown)
       // TODO validate seats
+
       reservation =
         Reservation(None, screening, name, request.ticketsBreakdown, request.seats, confirmed = false)
       createdReservation <- reservationRepository.create(reservation)
