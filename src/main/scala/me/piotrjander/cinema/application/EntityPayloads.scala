@@ -46,14 +46,34 @@ object EntityPayloads {
   }
 
   case class Reservation(id: String,
-                         screening: Screening,
+                         screening: ScreeningSummary,
                          name: String,
                          ticketsBreakdown: entity.TicketsBreakdown,
                          seats: Seq[Seat],
                          confirmed: Boolean)
 
+  object Reservation {
+    def fromEntity(e: entity.Reservation): Reservation =
+      Reservation(
+        e.id.get.id,
+        ScreeningSummary.fromEntity(e.screening),
+        e.name.toString,
+        e.ticketsBreakdown,
+        e.seats,
+        e.confirmed
+      )
+  }
+
   case class ReservationRequest(reservation: Reservation,
                                 secret: String,
-                                submittedTime: String,
-                                expirationTime: String)
+                                submittedTime: String)
+
+  object ReservationRequest {
+    def fromEntity(e: entity.ReservationRequest): ReservationRequest =
+      ReservationRequest(
+        Reservation.fromEntity(e.reservation),
+        e.confirmationSecret.toString,
+        e.submittedTime.toString
+      )
+  }
 }

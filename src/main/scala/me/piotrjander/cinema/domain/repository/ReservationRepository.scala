@@ -4,7 +4,7 @@ import me.piotrjander.cinema.domain.entity.{Reservation, ReservationId, Screenin
 
 trait ReservationRepository[F[_]] {
 
-  def create(reservation: Reservation): F[Unit]
+  def create(reservation: Reservation): F[Reservation]
 
   def list(screening: ScreeningId): F[Seq[Reservation]]
 
