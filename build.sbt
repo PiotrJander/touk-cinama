@@ -68,6 +68,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http"            % akkaHttpVersion,
   "com.typesafe.akka" %% "akka-stream"          % akkaVersion,
   "com.typesafe.akka" %% "akka-actor"     % akkaVersion,
+  "org.scalatest" %% "scalatest" % "3.1.0" % Test
 )
 
 addCompilerPlugin(
