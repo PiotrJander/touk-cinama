@@ -8,7 +8,7 @@ import cats.implicits._
 import me.piotrjander.cinema.application.EntityPayloads
 import me.piotrjander.cinema.application.message.ReservationMessage._
 import me.piotrjander.cinema.application.exception.BadRequestException
-import me.piotrjander.cinema.application.provider.{ConfirmationSecretGenerator, LocalClock, ReservationRequestExpirationChecker, SeatAvailability}
+import me.piotrjander.cinema.application.provider.{ConfirmationSecretGenerator, LocalClock, SeatAvailability}
 import me.piotrjander.cinema.application.validator.{FullNameValidator, TicketsBreakdownValidator}
 import me.piotrjander.cinema.domain.entity.{Reservation, ReservationId, ReservationRequest, Screening, ScreeningId}
 import me.piotrjander.cinema.domain.repository._
@@ -19,10 +19,8 @@ class ReservationService[F[_]: Async](
   reservationRequestRepository: ReservationRequestRepository[F],
   localClock: LocalClock[F],
   confirmationSecretGenerator: ConfirmationSecretGenerator[F],
-  reservationRequestEncoder: EntityPayloads.ReservationRequestEncoder,
   beforeMovieStarts: Duration,
-  seatAvailability: SeatAvailability[F],
-  reservationRequestExpirationChecker: ReservationRequestExpirationChecker
+  seatAvailability: SeatAvailability[F]
 ) extends ReservationServiceApi[F] {
 
   private def getValidScreening(screeningId: ScreeningId): F[Screening] =
@@ -55,7 +53,7 @@ class ReservationService[F[_]: Async](
         ReservationRequest(createdReservation, confirmationSecret, dateTimeNow)
       _ <- reservationRequestRepository.create(reservationRequest)
     } yield {
-      val payload = reservationRequestEncoder.fromEntity(reservationRequest)
+      val payload = EntityPayloads.ReservationRequest.fromEntity(reservationRequest)
       CreateResponse(payload)
     }
 
@@ -69,7 +67,7 @@ class ReservationService[F[_]: Async](
   private def validateConfirmationRequest(reservationRequest: ReservationRequest, requestSecret: String): F[Unit] =
     for {
       dateTimeNow <- localClock.dateTimeNow()
-      reservationExpired = reservationRequestExpirationChecker.isExpired(reservationRequest, dateTimeNow)
+      reservationExpired = reservationRequest.isExpired(dateTimeNow)
       reservationSecretMatches = reservationRequest.confirmationSecret.equalsString(requestSecret)
       _ <- Applicative[F].whenA(reservationExpired || !reservationSecretMatches) {
         Async[F].raiseError(new BadRequestException())

@@ -48,7 +48,7 @@ class ScreeningService[F[_]: Async](screeningRepository: ScreeningRepository[F],
       ListResponse(screeningPayloads)
     }
 
-  override def get(screeningId: GetRequest): F[Option[GetResponse]] = {
+  override def describe(screeningId: DescribeRequest): F[Option[GetResponse]] = {
     val result = for {
       screening <- OptionT(screeningRepository.get(ScreeningId(screeningId.id)))
       seatAvailability <- OptionT.liftF(seatAvailability.getAvailableSeats(screening))

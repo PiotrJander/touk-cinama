@@ -2,6 +2,7 @@ package me.piotrjander.cinema.application
 
 import me.piotrjander.cinema.domain.entity
 import me.piotrjander.cinema.domain.entity.{ScreeningSeatAvailability, Seat}
+import me.piotrjander.cinema.main.Configuration
 
 object EntityPayloads {
 
@@ -73,9 +74,19 @@ object EntityPayloads {
                                 expirationTime: String,
                                 amountToPay: Float)
 
-  trait ReservationRequestEncoder {
-    def fromEntity(
-      e: entity.ReservationRequest
-    ): ReservationRequest
+  object ReservationRequest {
+    def fromEntity(e: entity.ReservationRequest): ReservationRequest = {
+      val expirationTimeCandidate1 =
+        e.submittedDateTime.plus(Configuration.RESERVATION_TIMEOUT)
+      val expirationTimeCandidate2 =
+        e.reservation.screening.dateTime.minus(Configuration.RESERVATION_BEFORE_START)
+      val expirationTime = Seq(expirationTimeCandidate1, expirationTimeCandidate2).min
+      EntityPayloads.ReservationRequest(
+        EntityPayloads.Reservation.fromEntity(e.reservation),
+        e.confirmationSecret.toString,
+        expirationTime.toString,
+        Configuration.TICKET_PRICES.amountToPay(e.reservation.ticketsBreakdown)
+      )
+    }
   }
 }

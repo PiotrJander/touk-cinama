@@ -8,7 +8,7 @@ object ScreeningMessage {
 
   case class ListResponse(screenings: Seq[ScreeningSummary])
 
-  case class GetRequest(id: String)
+  case class DescribeRequest(id: String)
 
   case class GetResponse(screening: Screening)
 }

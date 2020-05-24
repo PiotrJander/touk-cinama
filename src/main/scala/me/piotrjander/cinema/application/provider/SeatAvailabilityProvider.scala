@@ -14,8 +14,7 @@ import scala.collection.mutable
 class SeatAvailabilityProvider[F[_]: Sync](
   reservationRepository: ReservationRepository[F],
   reservationRequestRepository: ReservationRequestRepository[F],
-  localClock: LocalClock[F],
-  reservationRequestExpirationChecker: ReservationRequestExpirationChecker
+  localClock: LocalClock[F]
 ) extends SeatAvailability[F] {
 
   import SeatAvailabilityProvider._
@@ -26,11 +25,7 @@ class SeatAvailabilityProvider[F[_]: Sync](
     dateTimeNow: LocalDateTime
   ): Seq[Reservation] =
     (reservations zip requests).foldRight(Vector.empty[Reservation]) {
-      case ((reservation, Some(request)), acc)
-          if reservationRequestExpirationChecker.isExpired(
-            request,
-            dateTimeNow
-          ) =>
+      case ((reservation, Some(request)), acc) if request.isExpired(dateTimeNow) =>
         reservation +: acc
       case (_, acc) =>
         acc

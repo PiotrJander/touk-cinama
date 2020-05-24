@@ -53,8 +53,10 @@ scalacOptions in ThisBuild ++= Seq(
 //// Dependencies       ////
 ////////////////////////////
 
-val catsVersion = "2.0.0"
-val circeVersion = "0.12.3"
+lazy val catsVersion = "2.0.0"
+lazy val circeVersion = "0.12.3"
+lazy val akkaHttpVersion = "10.1.11"
+lazy val akkaVersion     = "2.6.1"
 
 libraryDependencies ++= Seq(
   "org.typelevel" %% "cats-core" % catsVersion,
@@ -62,7 +64,10 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-core" % circeVersion,
   "io.circe" %% "circe-generic" % circeVersion,
   "io.circe" %% "circe-parser" % circeVersion,
-  "de.heikoseeberger" %% "akka-http-circe" % "1.30.0"
+  "de.heikoseeberger" %% "akka-http-circe" % "1.30.0",
+  "com.typesafe.akka" %% "akka-http"            % akkaHttpVersion,
+  "com.typesafe.akka" %% "akka-stream"          % akkaVersion,
+  "com.typesafe.akka" %% "akka-actor"     % akkaVersion,
 )
 
 addCompilerPlugin(
