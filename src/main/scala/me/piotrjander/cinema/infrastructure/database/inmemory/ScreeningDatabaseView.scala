@@ -6,7 +6,7 @@ import cats.effect.Sync
 import me.piotrjander.cinema.domain.entity.{Screening, ScreeningId}
 import me.piotrjander.cinema.domain.repository.ScreeningRepository
 
-class ScreeningDatabaseView[F[_]: Sync](db: UnderlyingDatabase)
+class ScreeningDatabaseView[F[_]: Sync](db: InMemoryDatabase)
     extends ScreeningRepository[F] {
 
   val F: Sync[F] = implicitly[Sync[F]]

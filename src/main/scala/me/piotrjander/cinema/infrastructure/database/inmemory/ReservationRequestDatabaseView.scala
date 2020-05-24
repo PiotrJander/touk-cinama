@@ -8,7 +8,7 @@ import me.piotrjander.cinema.domain.entity.{ReservationId, ReservationRequest}
 import me.piotrjander.cinema.domain.repository.ReservationRequestRepository
 import me.piotrjander.cinema.infrastructure.database.model
 
-class ReservationRequestDatabaseView[F[_]: Sync](db: UnderlyingDatabase)
+class ReservationRequestDatabaseView[F[_]: Sync](db: InMemoryDatabase)
     extends ReservationRequestRepository[F] {
 
   override def create(

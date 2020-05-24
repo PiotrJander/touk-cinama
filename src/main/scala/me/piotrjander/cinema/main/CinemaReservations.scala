@@ -16,7 +16,7 @@ import me.piotrjander.cinema.infrastructure.database.inmemory.{
   ReservationDatabaseView,
   ReservationRequestDatabaseView,
   ScreeningDatabaseView,
-  UnderlyingDatabase
+  InMemoryDatabase
 }
 import me.piotrjander.cinema.infrastructure.http.{
   ReservationController,
@@ -32,7 +32,7 @@ object CinemaReservations extends App {
   import system.dispatcher
   implicit val cs: ContextShift[IO] = IO.contextShift(system.dispatcher)
 
-  val database = new UnderlyingDatabase()
+  val database = new InMemoryDatabase()
 
   val screeningRepository = new ScreeningDatabaseView[IO](database)
   val reservationRepository = new ReservationDatabaseView[IO](database)

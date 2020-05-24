@@ -1,39 +1,49 @@
 package me.piotrjander.cinema.infrastructure.http
 
+import akka.event.Logging
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.directives.DebuggingDirectives
 
-class Routes(screeningController: ScreeningController, reservationController: ReservationController) {
+class Routes(screeningController: ScreeningController,
+             reservationController: ReservationController) {
 
   val routes: Route =
-    rejectEmptyResponse {
-      pathPrefix("screenings") {
-        pathEnd {
-          get {
-            parameters(("from", "to")) { (startDateTime, endDateTime) =>
-              screeningController.list(startDateTime, endDateTime)
-            }
-          }
-        } ~
-          path(Segment) { screeningId =>
-            get {
-              screeningController.describe(screeningId)
-            }
-          }
-      } ~
-        pathPrefix("reservations") {
+    Route.seal {
+      DebuggingDirectives.logRequestResult(("touk-cinema", Logging.InfoLevel)) {
+        pathPrefix("screenings") {
           pathEnd {
-            post {
-              reservationController.create()
-            }
-          } ~
-            pathPrefix(Segment) { reservationId =>
-              pathPrefix("confirm") {
-                post {
-                  reservationController.confirm(reservationId)
-                }
+            get {
+              parameters(("from", "to")) { (startDateTime, endDateTime) =>
+                screeningController.list(startDateTime, endDateTime)
               }
             }
-        }
+          } ~
+            path(Segment) { screeningId =>
+              get {
+                screeningController.describe(screeningId)
+              }
+            }
+        } ~
+          pathPrefix("reservations") {
+            pathEnd {
+              post {
+                reservationController.create()
+              }
+            } ~
+              pathPrefix(Segment) { reservationId =>
+                pathPrefix("confirm") {
+                  post {
+                    reservationController.confirm(reservationId)
+                  }
+                }
+              }
+          } ~
+          path("healthz") {
+            complete(StatusCodes.NoContent)
+          }
+      }
     }
+
 }

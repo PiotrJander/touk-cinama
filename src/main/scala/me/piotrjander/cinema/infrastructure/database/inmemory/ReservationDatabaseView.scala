@@ -6,7 +6,7 @@ import me.piotrjander.cinema.domain.entity.{Reservation, ReservationId, Screenin
 import me.piotrjander.cinema.domain.repository.ReservationRepository
 import me.piotrjander.cinema.infrastructure.database.model
 
-class ReservationDatabaseView[F[_]: Sync](db: UnderlyingDatabase) extends ReservationRepository[F] {
+class ReservationDatabaseView[F[_]: Sync](db: InMemoryDatabase) extends ReservationRepository[F] {
 
   override def create(reservation: entity.Reservation): F[Reservation] = Sync[F].delay {
     val id = ReservationId(db.getNextId)
