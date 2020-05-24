@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import cats.effect.{ContextShift, IO}
 import me.piotrjander.cinema.application.provider.{
-  ConfirmationSecretUUIDGenerator,
+  FixedConfirmationSecretGenerator,
   FixedLocalClock,
   SeatAvailabilityProvider
 }
@@ -47,7 +47,7 @@ object CinemaReservations extends App {
       reservationRequestRepository,
       localClock
     )
-  val secretGenerator = new ConfirmationSecretUUIDGenerator[IO]()
+  val secretGenerator = new FixedConfirmationSecretGenerator[IO]()
 
   val screeningService = new ScreeningService[IO](
     screeningRepository,

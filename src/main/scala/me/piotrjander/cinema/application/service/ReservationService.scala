@@ -38,13 +38,13 @@ class ReservationService[F[_]: Async](
     for {
       maybeScreening <- screeningRepository.get(screeningId)
       screening <- ApplicativeError
-        .liftFromOption[F](maybeScreening, new BadRequestException())
+        .liftFromOption[F](maybeScreening, new BadRequestException("Screening not found"))
       dateTimeNow <- localClock.dateTimeNow()
       errorCondition = dateTimeNow
         .plus(Configuration.RESERVATION_BEFORE_START)
         .isAfter(screening.dateTime)
       _ <- Applicative[F].whenA(errorCondition) {
-        Async[F].raiseError(new BadRequestException())
+        Async[F].raiseError(new BadRequestException("Ticket sales for this screening have ended"))
       }
     } yield screening
 
@@ -89,7 +89,7 @@ class ReservationService[F[_]: Async](
     for {
       maybeReservationRequest <- reservationRequestRepository.get(reservationId)
       reservationRequest <- ApplicativeError
-        .liftFromOption[F](maybeReservationRequest, new BadRequestException())
+        .liftFromOption[F](maybeReservationRequest, new BadRequestException("Reservation request not found"))
       reservation <- reservationRepository.get(reservationId).map(_.get)
     } yield (reservation, reservationRequest)
 
@@ -102,8 +102,11 @@ class ReservationService[F[_]: Async](
       reservationExpired = reservationRequest.isExpired(dateTimeNow)
       reservationSecretMatches = reservationRequest.confirmationSecret
         .equalsString(requestSecret)
-      _ <- Applicative[F].whenA(reservationExpired || !reservationSecretMatches) {
-        Async[F].raiseError(new BadRequestException())
+      _ <- Applicative[F].whenA(reservationExpired) {
+        Async[F].raiseError(new BadRequestException("Reservation expired"))
+      }
+      _ <- Applicative[F].whenA(!reservationSecretMatches) {
+        Async[F].raiseError(new BadRequestException("Wrong secret key"))
       }
     } yield ()
 

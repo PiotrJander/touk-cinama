@@ -25,7 +25,7 @@ class SeatAvailabilityProvider[F[_]: Sync](
     dateTimeNow: LocalDateTime
   ): Seq[Reservation] =
     (reservations zip requests).foldRight(Vector.empty[Reservation]) {
-      case ((reservation, Some(request)), acc) if request.isExpired(dateTimeNow) =>
+      case ((reservation, Some(request)), acc) if !request.isExpired(dateTimeNow) =>
         reservation +: acc
       case (_, acc) =>
         acc
@@ -68,7 +68,7 @@ object SeatAvailabilityProvider {
   )(implicit F: MonadError[F, Throwable]): F[Unit] = {
     for (seat <- seats) {
       if (availability.isReserved(seat)) {
-        return F.raiseError(new BadRequestException())
+        return F.raiseError(new BadRequestException("The seat is already taken"))
       }
     }
     F.unit
@@ -89,7 +89,7 @@ object SeatAvailabilityProvider {
           val reserved2 = reservedSeats.contains(rowSeats(i - 2))
           val empty1 = !reserved1 && !availability.isReserved(row, rowSeats(i - 1))
           if (reserved0 && reserved2 && empty1) {
-            return F.raiseError(new BadRequestException())
+            return F.raiseError(new BadRequestException("Empty seat between reserved seats"))
           }
         }
       }

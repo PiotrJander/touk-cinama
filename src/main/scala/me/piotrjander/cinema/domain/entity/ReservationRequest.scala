@@ -10,7 +10,7 @@ case class ReservationRequest(reservation: Reservation,
 
   def isExpired(dateTimeNow: LocalDateTime): Boolean = {
     val movieStartDateTime = reservation.screening.dateTime
-    submittedDateTime.plus(Configuration.RESERVATION_TIMEOUT).isAfter(dateTimeNow) &&
-      dateTimeNow.isBefore(movieStartDateTime.minus(Configuration.RESERVATION_BEFORE_START))
+    submittedDateTime.plus(Configuration.RESERVATION_TIMEOUT).isBefore(dateTimeNow) ||
+      dateTimeNow.isAfter(movieStartDateTime.minus(Configuration.RESERVATION_BEFORE_START))
   }
 }

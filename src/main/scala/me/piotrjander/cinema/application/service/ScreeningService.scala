@@ -29,7 +29,7 @@ class ScreeningService[F[_]: Async](screeningRepository: ScreeningRepository[F],
       dateTimeNow <- localClock.dateTimeNow()
       cutoffDateTime = dateTimeNow.plus(Configuration.RESERVATION_BEFORE_START)
       _ <- Applicative[F].whenA(endDateTime.isBefore(cutoffDateTime)) {
-        Async[F].raiseError(new BadRequestException())
+        Async[F].raiseError(new BadRequestException("Invalid time range"))
       }
     } yield {
       val start = Seq(startDateTime, cutoffDateTime).max

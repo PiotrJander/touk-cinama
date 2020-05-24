@@ -1,8 +1,8 @@
 package me.piotrjander.cinema.domain.entity
 
-case class TicketsBreakdown(adultTickets: Int,
-                            studentTickets: Int,
-                            childTickets: Int) {
+case class TicketsBreakdown(adults: Int,
+                            students: Int,
+                            children: Int) {
 
-  def numberOfTickets: Int = adultTickets + studentTickets + childTickets
+  def numberOfTickets: Int = adults + students + children
 }
