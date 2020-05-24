@@ -28,7 +28,7 @@ class Routes(screeningController: ScreeningController, reservationController: Re
             }
           } ~
             pathPrefix(Segment) { reservationId =>
-              path("confirm") {
+              pathPrefix("confirm") {
                 post {
                   reservationController.confirm(reservationId)
                 }
