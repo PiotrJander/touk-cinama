@@ -8,7 +8,7 @@ import me.piotrjander.cinema.domain.entity.{ReservationId, ReservationRequest}
 import me.piotrjander.cinema.domain.repository.ReservationRequestRepository
 import me.piotrjander.cinema.infrastructure.database.model
 
-class ReservationRequestDatabaseView[F[_]: Sync](db: InMemoryDatabase)
+class ReservationRequestDatabaseView[F[_]: Sync](database: InMemoryDatabase)
     extends ReservationRequestRepository[F] {
 
   override def create(
@@ -18,27 +18,27 @@ class ReservationRequestDatabaseView[F[_]: Sync](db: InMemoryDatabase)
       reservationRequest
     val reservationRequestModel =
       model.ReservationRequest(reservation.id.get, secret, submittedTime)
-    db.reservationRequests += (reservation.id.get -> reservationRequestModel)
+    database.reservationRequests += (reservation.id.get -> reservationRequestModel)
   }
 
   override def list(
     beforeTime: LocalDateTime
   ): F[Seq[entity.ReservationRequest]] = Sync[F].delay {
-    db.reservationRequests.values
+    database.reservationRequests.values
       .filter(rr => rr.submittedTime.isBefore(beforeTime))
       .map(rr => {
-        val reservation = db.getReservationEntity(db.reservations(rr.reservation))
+        val reservation = database.getReservationEntity(database.reservations(rr.reservation))
         entity.ReservationRequest(reservation, rr.requestSecret, rr.submittedTime)
       })
       .toSeq
   }
 
   override def get(id: ReservationId): F[Option[ReservationRequest]] = Sync[F].delay {
-    val maybeReservationRequest = db.reservationRequests.get(id)
-    maybeReservationRequest.map(rr => db.getReservationRequestEntity(rr))
+    val maybeReservationRequest = database.reservationRequests.get(id)
+    maybeReservationRequest.map(rr => database.getReservationRequestEntity(rr))
   }
 
   override def delete(id: ReservationId): F[Unit] = Sync[F].delay {
-    db.reservationRequests -= id
+    database.reservationRequests -= id
   }
 }

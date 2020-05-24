@@ -6,7 +6,7 @@ import cats.effect.Sync
 import me.piotrjander.cinema.domain.entity.{Screening, ScreeningId}
 import me.piotrjander.cinema.domain.repository.ScreeningRepository
 
-class ScreeningDatabaseView[F[_]: Sync](db: InMemoryDatabase)
+class ScreeningDatabaseView[F[_]: Sync](database: InMemoryDatabase)
     extends ScreeningRepository[F] {
 
   val F: Sync[F] = implicitly[Sync[F]]
@@ -14,14 +14,14 @@ class ScreeningDatabaseView[F[_]: Sync](db: InMemoryDatabase)
   override def list(fromTime: LocalDateTime,
                     toTime: LocalDateTime): F[Seq[Screening]] =
     F.delay {
-      db.screenings.values
+      database.screenings.values
         .filter(_.dateTime.isAfter(fromTime))
         .filter(_.dateTime.isBefore(toTime))
-        .map(s => db.getScreeningEntity(s))
+        .map(s => database.getScreeningEntity(s))
         .toSeq
     }
 
   override def get(id: ScreeningId): F[Option[Screening]] = F.delay {
-    db.screenings.get(id).map(s => db.getScreeningEntity(s))
+    database.screenings.get(id).map(s => database.getScreeningEntity(s))
   }
 }

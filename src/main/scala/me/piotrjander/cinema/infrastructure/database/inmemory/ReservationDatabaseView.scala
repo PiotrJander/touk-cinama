@@ -6,22 +6,22 @@ import me.piotrjander.cinema.domain.entity.{Reservation, ReservationId, Screenin
 import me.piotrjander.cinema.domain.repository.ReservationRepository
 import me.piotrjander.cinema.infrastructure.database.model
 
-class ReservationDatabaseView[F[_]: Sync](db: InMemoryDatabase) extends ReservationRepository[F] {
+class ReservationDatabaseView[F[_]: Sync](database: InMemoryDatabase) extends ReservationRepository[F] {
 
   override def create(reservation: entity.Reservation): F[Reservation] = Sync[F].delay {
-    val id = ReservationId(db.getNextId)
+    val id = ReservationId(database.getNextId)
     val entity.Reservation(_, screening, name, ticketsBreakdown, seats, confirmed) = reservation
     val reservationModel = model.Reservation(id, screening.id.get, name, ticketsBreakdown, seats, confirmed)
-    db.reservations += (id -> reservationModel)
+    database.reservations += (id -> reservationModel)
     reservation.copy(id = Some(id))
   }
 
   override def list(screening: ScreeningId): F[Seq[Reservation]] = Sync[F].delay {
-    db.reservations.values.filter(_.screening == screening).map(r => db.getReservationEntity(r)).toSeq
+    database.reservations.values.filter(_.screening == screening).map(r => database.getReservationEntity(r)).toSeq
   }
 
   override def get(id: ReservationId): F[Option[entity.Reservation]] = Sync[F].delay {
-    db.reservations.get(id).map(r => db.getReservationEntity(r))
+    database.reservations.get(id).map(r => database.getReservationEntity(r))
   }
 
   override def update(id: ReservationId, reservation: entity.Reservation): F[Unit] = Sync[F].delay {
@@ -29,13 +29,13 @@ class ReservationDatabaseView[F[_]: Sync](db: InMemoryDatabase) extends Reservat
         reservation
       val reservationModel =
         model.Reservation(id, screening.id.get, name, ticketsBreakdown, seats, confirmed)
-      db.reservations += (id -> reservationModel)
+      database.reservations += (id -> reservationModel)
   }
 
   override def delete(id: ReservationId): F[Unit] = Sync[F].delay {
-    db.reservations -= id
-    if (db.reservationRequests.contains(id)) {
-      db.reservationRequests -= id
+    database.reservations -= id
+    if (database.reservationRequests.contains(id)) {
+      database.reservationRequests -= id
     }
   }
 }

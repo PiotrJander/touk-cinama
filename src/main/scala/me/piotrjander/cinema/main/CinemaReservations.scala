@@ -5,7 +5,7 @@ import akka.http.scaladsl.Http
 import cats.effect.{ContextShift, IO}
 import me.piotrjander.cinema.application.provider.{
   ConfirmationSecretUUIDGenerator,
-  DefaultLocalClock,
+  FixedLocalClock,
   SeatAvailabilityProvider
 }
 import me.piotrjander.cinema.application.service.{
@@ -39,7 +39,7 @@ object CinemaReservations extends App {
   val reservationRequestRepository =
     new ReservationRequestDatabaseView[IO](database)
 
-  val localClock = new DefaultLocalClock[IO]()
+  val localClock = new FixedLocalClock[IO]()
   val seatAvailabilityProvider =
     new SeatAvailabilityProvider[IO](
       reservationRepository,
@@ -69,6 +69,8 @@ object CinemaReservations extends App {
 
   val serverBinding =
     Http().bindAndHandle(routes.routes, Configuration.HOST, Configuration.PORT)
+
+  println(s"Fixed current time is ${Configuration.REFERENCE_TIME}")
 
   serverBinding.onComplete {
     case Success(_) =>

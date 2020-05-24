@@ -1,7 +1,7 @@
 package me.piotrjander.cinema.infrastructure.database.inmemory
 
 import me.piotrjander.cinema.domain.entity
-import me.piotrjander.cinema.domain.entity.{Movie, MovieId, ScreeningRoom}
+import me.piotrjander.cinema.domain.entity.{Movie, ScreeningRoom}
 import me.piotrjander.cinema.infrastructure.database.model
 
 /** TODO make concurrent or just comment */
@@ -17,13 +17,14 @@ class InMemoryDatabase {
   var reservations: Map[entity.ReservationId, model.Reservation] = Map.empty
   var reservationRequests: Map[entity.ReservationId, model.ReservationRequest] = Map.empty
 
-  def addMovie(movie: Movie): Unit = {
+  def addMovie(movie: Movie): Unit =
     movies += movie.id.get -> movie
-  }
 
-  def addScreeningRoom(room: ScreeningRoom): Unit = {
+  def addScreeningRoom(room: ScreeningRoom): Unit =
     screeningRooms += room.id.get -> room
-  }
+
+  def addScreening(screening: model.Screening): Unit =
+    screenings += screening.id -> screening
 
   def getNextId: String = {
     nextId += 1

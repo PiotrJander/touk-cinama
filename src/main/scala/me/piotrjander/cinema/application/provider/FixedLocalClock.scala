@@ -3,9 +3,10 @@ package me.piotrjander.cinema.application.provider
 import java.time.LocalDateTime
 
 import cats.effect.Sync
+import me.piotrjander.cinema.main.Configuration
 
-class DefaultLocalClock[F[_]: Sync] extends LocalClock[F] {
+class FixedLocalClock[F[_]: Sync] extends LocalClock[F] {
 
   override def dateTimeNow(): F[LocalDateTime] =
-    Sync[F].delay(LocalDateTime.now())
+    Sync[F].delay(Configuration.REFERENCE_TIME)
 }
