@@ -33,6 +33,7 @@ object CinemaReservations extends App {
   implicit val cs: ContextShift[IO] = IO.contextShift(system.dispatcher)
 
   val database = new InMemoryDatabase()
+  DatabaseFixtures.populate(database)
 
   val screeningRepository = new ScreeningDatabaseView[IO](database)
   val reservationRepository = new ReservationDatabaseView[IO](database)

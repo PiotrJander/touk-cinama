@@ -8,3 +8,4 @@ case class Reservation(id: ReservationId,
                        ticketsBreakdown: TicketsBreakdown,
                        seats: Seq[Seat],
                        confirmed: Boolean)
+

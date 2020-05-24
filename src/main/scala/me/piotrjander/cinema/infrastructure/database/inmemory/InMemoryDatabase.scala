@@ -26,6 +26,12 @@ class InMemoryDatabase {
   def addScreening(screening: model.Screening): Unit =
     screenings += screening.id -> screening
 
+  def addReservation(reservation: model.Reservation): Unit =
+    reservations += reservation.id -> reservation
+
+  def addReservationRequest(reservationRequest: model.ReservationRequest): Unit =
+    reservationRequests += reservationRequest.reservation -> reservationRequest
+
   def getNextId: String = {
     nextId += 1
     nextId.toString
