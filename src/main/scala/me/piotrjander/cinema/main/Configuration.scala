@@ -8,4 +8,6 @@ object Configuration {
   val RESERVATION_TIMEOUT: Duration = Duration.ofMinutes(15)
   val RESERVATION_BEFORE_START: Duration = Duration.ofMinutes(15)
   val TICKET_PRICES: TicketPrices = TicketPrices(25, 18, 12.50f)
+  val HOST = "0.0.0.0"
+  val PORT = 8080
 }
