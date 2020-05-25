@@ -59,4 +59,16 @@ The database is implemented as an in-memory database. This is because the only
 Scala framework for working with databases I used is Slick, which I recommend
 against ([my issues](https://github.com/slick/slick/issues/2085) on Github were
 acknowledged but are still open). I didn't want to learn a new framework for
-the purpose of this project.
+the purpose of this project. My in-memory implementation has some limitations
+(it does not support concurrent requests, it doesn't check operations for
+consistency, it is not optimized), but it suffices for this project.
+
+I tried to write idiomatic functional Scala and only occasionally departed from
+production grade standards (omitted Scaladocs for classes, used literals in
+code, used Option.get) to complete the project within reasonable time. 
+
+This version of the project uses a fixed clock and a constant secret generators
+to allow for having deterministic tests.
+
+A production version of this code would have more extensive Scaladocs across
+the code.
