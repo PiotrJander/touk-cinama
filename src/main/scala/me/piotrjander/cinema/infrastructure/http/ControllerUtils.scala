@@ -11,6 +11,6 @@ object ControllerUtils {
   def completeOrBadRequest(magnet: CompleteOrRecoverWithMagnet): Route =
     completeOrRecoverWith(magnet) {
       case e: BadRequestException =>
-        complete(StatusCodes.BadRequest, e.getMessage)
+        complete((StatusCodes.BadRequest, e.getMessage))
     }
 }

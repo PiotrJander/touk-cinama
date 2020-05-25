@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 import cats.effect.Sync
 import me.piotrjander.cinema.main.Configuration
 
-/** We use a fixed clock for the purpose of deterministic tests. */
+/** We use a fixed clock to have deterministic tests. */
 class FixedLocalClock[F[_]: Sync] extends LocalClock[F] {
 
   override def dateTimeNow(): F[LocalDateTime] =
