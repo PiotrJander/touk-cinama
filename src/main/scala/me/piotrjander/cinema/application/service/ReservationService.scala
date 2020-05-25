@@ -6,22 +6,9 @@ import cats.implicits._
 import me.piotrjander.cinema.application.EntityPayloads
 import me.piotrjander.cinema.application.message.ReservationMessage._
 import me.piotrjander.cinema.application.exception.BadRequestException
-import me.piotrjander.cinema.application.provider.{
-  ConfirmationSecretGenerator,
-  LocalClock,
-  SeatAvailability
-}
-import me.piotrjander.cinema.application.validator.{
-  FullNameValidator,
-  TicketsBreakdownValidator
-}
-import me.piotrjander.cinema.domain.entity.{
-  Reservation,
-  ReservationId,
-  ReservationRequest,
-  Screening,
-  ScreeningId
-}
+import me.piotrjander.cinema.application.provider._
+import me.piotrjander.cinema.application.validator._
+import me.piotrjander.cinema.domain.entity._
 import me.piotrjander.cinema.domain.repository._
 import me.piotrjander.cinema.main.Configuration
 
@@ -38,32 +25,38 @@ class ReservationService[F[_]: Async](
     for {
       maybeScreening <- screeningRepository.get(screeningId)
       screening <- ApplicativeError
-        .liftFromOption[F](maybeScreening, new BadRequestException("Screening not found"))
+        .liftFromOption[F](
+          maybeScreening,
+          new BadRequestException("Screening not found")
+        )
       dateTimeNow <- localClock.dateTimeNow()
       errorCondition = dateTimeNow
         .plus(Configuration.RESERVATION_BEFORE_START)
         .isAfter(screening.dateTime)
       _ <- Applicative[F].whenA(errorCondition) {
-        Async[F].raiseError(new BadRequestException("Ticket sales for this screening have ended"))
+        Async[F].raiseError(
+          new BadRequestException("Ticket sales for this screening have ended")
+        )
       }
     } yield screening
 
-  override def create(request: CreateRequest): F[CreateResponse] =
+  override def create(request: CreateRequest): F[CreateResponse] = {
+    val CreateRequest(screeningId, name, ticketsBreakdown, seats) = request
     for {
       // validate request
-      screening <- getValidScreening(ScreeningId(request.screeningId))
-      name <- new FullNameValidator[F]().parse(request.name)
+      screening <- getValidScreening(ScreeningId(screeningId))
+      name <- new FullNameValidator[F]().parse(name)
       _ <- new TicketsBreakdownValidator[F]()
-        .validate(request.ticketsBreakdown, request.seats)
-      _ <- seatAvailability.validateSeatSelection(screening, request.seats)
+        .validate(ticketsBreakdown, seats)
+      _ <- seatAvailability.validateSeatSelection(screening, seats)
 
       // create reservation
       reservation = Reservation(
         None,
         screening,
         name,
-        request.ticketsBreakdown,
-        request.seats,
+        ticketsBreakdown,
+        seats,
         confirmed = false
       )
       createdReservation <- reservationRepository.create(reservation)
@@ -82,6 +75,7 @@ class ReservationService[F[_]: Async](
         EntityPayloads.ReservationRequest.fromEntity(reservationRequest)
       CreateResponse(payload)
     }
+  }
 
   private def getReservation(
     reservationId: ReservationId
@@ -89,7 +83,10 @@ class ReservationService[F[_]: Async](
     for {
       maybeReservationRequest <- reservationRequestRepository.get(reservationId)
       reservationRequest <- ApplicativeError
-        .liftFromOption[F](maybeReservationRequest, new BadRequestException("Reservation request not found"))
+        .liftFromOption[F](
+          maybeReservationRequest,
+          new BadRequestException("Reservation request not found")
+        )
       reservation <- reservationRepository.get(reservationId).map(_.get)
     } yield (reservation, reservationRequest)
 
