@@ -25,10 +25,8 @@ class ReservationDatabaseView[F[_]: Sync](database: InMemoryDatabase) extends Re
   }
 
   override def update(id: ReservationId, reservation: entity.Reservation): F[Unit] = Sync[F].delay {
-      val entity.Reservation(Some(id), screening, name, ticketsBreakdown, seats, confirmed) =
-        reservation
-      val reservationModel =
-        model.Reservation(id, screening.id.get, name, ticketsBreakdown, seats, confirmed)
+      val entity.Reservation(Some(id), screening, name, ticketsBreakdown, seats, confirmed) = reservation
+      val reservationModel = model.Reservation(id, screening.id.get, name, ticketsBreakdown, seats, confirmed)
       database.reservations += (id -> reservationModel)
   }
 

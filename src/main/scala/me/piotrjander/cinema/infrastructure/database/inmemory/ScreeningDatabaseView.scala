@@ -11,8 +11,7 @@ class ScreeningDatabaseView[F[_]: Sync](database: InMemoryDatabase)
 
   val F: Sync[F] = implicitly[Sync[F]]
 
-  override def list(fromTime: LocalDateTime,
-                    toTime: LocalDateTime): F[Seq[Screening]] =
+  override def list(fromTime: LocalDateTime, toTime: LocalDateTime): F[Seq[Screening]] =
     F.delay {
       database.screenings.values
         .filter(_.dateTime.isAfter(fromTime))

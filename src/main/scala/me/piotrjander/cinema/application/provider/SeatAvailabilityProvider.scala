@@ -11,19 +11,14 @@ import me.piotrjander.cinema.domain.repository._
 
 import scala.collection.mutable
 
-class SeatAvailabilityProvider[F[_]: Sync](
-  reservationRepository: ReservationRepository[F],
-  reservationRequestRepository: ReservationRequestRepository[F],
-  localClock: LocalClock[F]
-) extends SeatAvailability[F] {
+class SeatAvailabilityProvider[F[_] : Sync](reservationRepository: ReservationRepository[F],
+                                            reservationRequestRepository: ReservationRequestRepository[F],
+                                            localClock: LocalClock[F]) extends SeatAvailability[F] {
 
   import SeatAvailabilityProvider._
 
-  private def unconfirmedValidReservations(
-    reservations: Seq[Reservation],
-    requests: Seq[Option[ReservationRequest]],
-    dateTimeNow: LocalDateTime
-  ): Seq[Reservation] =
+  private def unconfirmedValidReservations(reservations: Seq[Reservation], requests: Seq[Option[ReservationRequest]],
+                                           dateTimeNow: LocalDateTime): Seq[Reservation] =
     (reservations zip requests).foldRight(Vector.empty[Reservation]) {
       case ((reservation, Some(request)), acc) if !request.isExpired(dateTimeNow) =>
         reservation +: acc
@@ -31,9 +26,7 @@ class SeatAvailabilityProvider[F[_]: Sync](
         acc
     }
 
-  override def getAvailableSeats(
-    screening: Screening
-  ): F[ScreeningSeatAvailability] = {
+  override def getAvailableSeats(screening: Screening): F[ScreeningSeatAvailability] = {
     for {
       reservations <- reservationRepository.list(screening.id.get)
       confirmedReservations = reservations.filter(_.confirmed)
@@ -43,16 +36,11 @@ class SeatAvailabilityProvider[F[_]: Sync](
       )
       dateTimeNow <- localClock.dateTimeNow()
       validReservations = confirmedReservations ++
-        unconfirmedValidReservations(
-          unconfirmedReservations,
-          reservationRequests,
-          dateTimeNow
-        )
+        unconfirmedValidReservations(unconfirmedReservations, reservationRequests, dateTimeNow)
     } yield calculateAvailableSeats(screening, validReservations)
   }
 
-  override def validateSeatSelection(screening: Screening,
-                                     seats: Seq[Seat]): F[Unit] =
+  override def validateSeatSelection(screening: Screening, seats: Seq[Seat]): F[Unit] =
     for {
       availability <- getAvailableSeats(screening)
       _ <- checkReservedSeatsAvailable[F](availability, seats)
@@ -62,10 +50,8 @@ class SeatAvailabilityProvider[F[_]: Sync](
 
 object SeatAvailabilityProvider {
 
-  def checkReservedSeatsAvailable[F[_]](
-    availability: ScreeningSeatAvailability,
-    seats: Seq[Seat]
-  )(implicit F: MonadError[F, Throwable]): F[Unit] = {
+  def checkReservedSeatsAvailable[F[_]](availability: ScreeningSeatAvailability, seats: Seq[Seat])
+                                       (implicit F: MonadError[F, Throwable]): F[Unit] = {
     for (seat <- seats) {
       if (availability.isReserved(seat)) {
         return F.raiseError(new BadRequestException("The seat is already taken"))
@@ -74,11 +60,9 @@ object SeatAvailabilityProvider {
     F.unit
   }
 
-  def checkNoEmptySeatBetweenReserved[F[_]](
-    availability: ScreeningSeatAvailability,
-    seats: Seq[Seat],
-    room: ScreeningRoom
-  )(implicit F: MonadError[F, Throwable]): F[Unit] = {
+  def checkNoEmptySeatBetweenReserved[F[_]](availability: ScreeningSeatAvailability, seats: Seq[Seat],
+                                            room: ScreeningRoom)
+                                           (implicit F: MonadError[F, Throwable]): F[Unit] = {
     for ((row, seats) <- seats.groupBy(_.row)) {
       val reservedSeats = seats.map(_.name).toSet
       val rowSeats = room.seats(row)
@@ -97,10 +81,8 @@ object SeatAvailabilityProvider {
     F.unit
   }
 
-  private def calculateAvailableSeats(
-    screening: Screening,
-    reservations: Seq[Reservation]
-  ): ScreeningSeatAvailability = {
+  private def calculateAvailableSeats(screening: Screening, reservations: Seq[Reservation])
+  : ScreeningSeatAvailability = {
     val seats = reservations.flatMap(_.seats)
     val seatMap = mutable.Map.empty[String, mutable.Map[String, Boolean]]
 

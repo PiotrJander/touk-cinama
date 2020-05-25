@@ -15,10 +15,8 @@ import me.piotrjander.cinema.domain.entity.ScreeningId
 import me.piotrjander.cinema.domain.repository.ScreeningRepository
 import me.piotrjander.cinema.main.Configuration
 
-class ScreeningService[F[_]: Async](screeningRepository: ScreeningRepository[F],
-                                    localClock: LocalClock[F],
-                                    seatAvailability: SeatAvailability[F])
-    extends ScreeningServiceApi[F] {
+class ScreeningService[F[_] : Async](screeningRepository: ScreeningRepository[F], localClock: LocalClock[F],
+                                     seatAvailability: SeatAvailability[F]) extends ScreeningServiceApi[F] {
 
   val dateTimeValidator = new DateTimeValidator[F]()
 
@@ -53,8 +51,7 @@ class ScreeningService[F[_]: Async](screeningRepository: ScreeningRepository[F],
       screening <- OptionT(screeningRepository.get(ScreeningId(screeningId.id)))
       seatAvailability <- OptionT.liftF(seatAvailability.getAvailableSeats(screening))
     } yield {
-      val screeningPayload =
-        EntityPayloads.Screening.fromEntity(screening, seatAvailability)
+      val screeningPayload = EntityPayloads.Screening.fromEntity(screening, seatAvailability)
       GetResponse(screeningPayload)
     }
     result.value

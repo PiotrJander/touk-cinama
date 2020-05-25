@@ -3,33 +3,19 @@ package me.piotrjander.cinema.main
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import cats.effect.{ContextShift, IO}
-import me.piotrjander.cinema.application.provider.{
-  FixedConfirmationSecretGenerator,
-  FixedLocalClock,
-  SeatAvailabilityProvider
-}
-import me.piotrjander.cinema.application.service.{
-  ReservationService,
-  ScreeningService
-}
-import me.piotrjander.cinema.infrastructure.database.inmemory.{
-  ReservationDatabaseView,
-  ReservationRequestDatabaseView,
-  ScreeningDatabaseView,
-  InMemoryDatabase
-}
-import me.piotrjander.cinema.infrastructure.http.{
-  ReservationController,
-  Routes,
-  ScreeningController
-}
+import me.piotrjander.cinema.application.provider._
+import me.piotrjander.cinema.application.service._
+import me.piotrjander.cinema.infrastructure.database.inmemory._
+import me.piotrjander.cinema.infrastructure.http._
 
 import scala.util.{Failure, Success}
 
 object CinemaReservations extends App {
 
   implicit val system: ActorSystem = ActorSystem("main")
+
   import system.dispatcher
+
   implicit val cs: ContextShift[IO] = IO.contextShift(system.dispatcher)
 
   val database = new InMemoryDatabase()
@@ -37,39 +23,24 @@ object CinemaReservations extends App {
 
   val screeningRepository = new ScreeningDatabaseView[IO](database)
   val reservationRepository = new ReservationDatabaseView[IO](database)
-  val reservationRequestRepository =
-    new ReservationRequestDatabaseView[IO](database)
+  val reservationRequestRepository = new ReservationRequestDatabaseView[IO](database)
 
   val localClock = new FixedLocalClock[IO]()
   val seatAvailabilityProvider =
-    new SeatAvailabilityProvider[IO](
-      reservationRepository,
-      reservationRequestRepository,
-      localClock
-    )
+    new SeatAvailabilityProvider[IO](reservationRepository, reservationRequestRepository, localClock)
   val secretGenerator = new FixedConfirmationSecretGenerator[IO]()
 
-  val screeningService = new ScreeningService[IO](
-    screeningRepository,
-    localClock,
-    seatAvailabilityProvider
-  )
-  val reservationService = new ReservationService[IO](
-    screeningRepository,
-    reservationRepository,
-    reservationRequestRepository,
-    localClock,
-    secretGenerator,
-    seatAvailabilityProvider
-  )
+  val screeningService = new ScreeningService[IO](screeningRepository, localClock, seatAvailabilityProvider)
+  val reservationService =
+    new ReservationService[IO](screeningRepository, reservationRepository, reservationRequestRepository, localClock,
+      secretGenerator, seatAvailabilityProvider)
 
   val screeningController = new ScreeningController(screeningService)
   val reservationController = new ReservationController(reservationService)
 
   val routes = new Routes(screeningController, reservationController)
 
-  val serverBinding =
-    Http().bindAndHandle(routes.routes, Configuration.HOST, Configuration.PORT)
+  val serverBinding = Http().bindAndHandle(routes.routes, Configuration.HOST, Configuration.PORT)
 
   println(s"Fixed current time is ${Configuration.REFERENCE_TIME}")
 

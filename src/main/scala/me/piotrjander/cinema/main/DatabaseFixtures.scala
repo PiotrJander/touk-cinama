@@ -2,21 +2,10 @@ package me.piotrjander.cinema.main
 
 import java.time.Duration
 
-import me.piotrjander.cinema.domain.entity.{
-  ConfirmationSecret,
-  FullName,
-  Movie,
-  ReservationId,
-  ScreeningRoom,
-  Seat,
-  TicketsBreakdown
-}
+import me.piotrjander.cinema.domain.entity.{ConfirmationSecret, FullName, Movie, ReservationId, ScreeningRoom, Seat,
+  TicketsBreakdown}
 import me.piotrjander.cinema.infrastructure.database.inmemory.InMemoryDatabase
-import me.piotrjander.cinema.infrastructure.database.model.{
-  Reservation,
-  ReservationRequest,
-  Screening
-}
+import me.piotrjander.cinema.infrastructure.database.model.{Reservation, ReservationRequest, Screening}
 
 object DatabaseFixtures {
 
@@ -33,10 +22,7 @@ object DatabaseFixtures {
 
     val row = Vector("1", "2", "3")
     val rowNames = Vector("I", "II", "III")
-    val seats =
-      rowNames.foldRight(Map.empty[String, Seq[String]]) { (rowName, acc) =>
-        acc + (rowName -> row)
-      }
+    val seats = rowNames.foldRight(Map.empty[String, Seq[String]]) { (rowName, acc) => acc + (rowName -> row) }
     val rooms = Vector(
       ScreeningRoom(1, "Room 1", seats),
       ScreeningRoom(2, "Room 2", seats),
