@@ -23,6 +23,9 @@ pretty-prints responses:
 ./end2end-test-jq.sh
 ```
 
+The console output from running the test is
+[included](end2end-test-transcript.txt).
+
 I did not supply Docker files on the assumption that both `sbt` and `curl` work
 consistently across platforms, but I can add Docker support if needed.
 

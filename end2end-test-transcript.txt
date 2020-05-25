@@ -1,0 +1,178 @@
+
+echo "===\n===Listing screenings\n==="
+===
+===Listing screenings
+===
+curl 'http://localhost:8080/screenings?from=1970-01-01T00:00&to=1970-01-01T04:00' | jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   563  100   563    0     0    830      0 --:--:-- --:--:-- --:--:--   829
+{
+  "screenings": [
+    {
+      "id": "2",
+      "movie": {
+        "id": "2",
+        "title": "Breakfast at Tiffany's"
+      },
+      "roomName": "Room 1",
+      "dateTime": "1970-01-01T02:00"
+    },
+    {
+      "id": "3",
+      "movie": {
+        "id": "2",
+        "title": "Breakfast at Tiffany's"
+      },
+      "roomName": "Room 2",
+      "dateTime": "1970-01-01T03:00"
+    },
+    {
+      "id": "6",
+      "movie": {
+        "id": "3",
+        "title": "Citizen Kane"
+      },
+      "roomName": "Room 3",
+      "dateTime": "1970-01-01T02:00"
+    },
+    {
+      "id": "5",
+      "movie": {
+        "id": "1",
+        "title": "Gone with the Wind"
+      },
+      "roomName": "Room 3",
+      "dateTime": "1970-01-01T01:00"
+    },
+    {
+      "id": "1",
+      "movie": {
+        "id": "1",
+        "title": "Gone with the Wind"
+      },
+      "roomName": "Room 1",
+      "dateTime": "1970-01-01T01:00"
+    }
+  ]
+}
+
+echo "===\n===Getting details of a screening\n==="
+===
+===Getting details of a screening
+===
+curl 'http://localhost:8080/screenings/1' | jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   262  100   262    0     0   3082      0 --:--:-- --:--:-- --:--:--  3082
+{
+  "screening": {
+    "summary": {
+      "id": "1",
+      "movie": {
+        "id": "1",
+        "title": "Gone with the Wind"
+      },
+      "roomName": "Room 1",
+      "dateTime": "1970-01-01T01:00"
+    },
+    "seatAvailability": {
+      "II": {
+        "1": false,
+        "2": false,
+        "3": false
+      },
+      "III": {
+        "1": false,
+        "2": true,
+        "3": true
+      },
+      "I": {
+        "1": true,
+        "2": true,
+        "3": false
+      }
+    }
+  }
+}
+
+echo "===\n===Creating a reservation\n==="
+===
+===Creating a reservation
+===
+curl --header "Content-Type: application/json" \
+  --data '{"screeningId": "1", "name": "Piotr Jander", "ticketsBreakdown": {"adults": 1, "students": 0, "children": 0 }, "seats": [{"row": "II", "name": "2"}]}' \
+  'http://localhost:8080/reservations' | jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   522  100   373  100   149   2590   1034 --:--:-- --:--:-- --:--:--  3625
+{
+  "confirmation": {
+    "reservation": {
+      "id": "11",
+      "screening": {
+        "id": "1",
+        "movie": {
+          "id": "1",
+          "title": "Gone with the Wind"
+        },
+        "roomName": "Room 1",
+        "dateTime": "1970-01-01T01:00"
+      },
+      "name": "Piotr Jander",
+      "ticketsBreakdown": {
+        "adults": 1,
+        "students": 0,
+        "children": 0
+      },
+      "seats": [
+        {
+          "row": "II",
+          "name": "2"
+        }
+      ],
+      "confirmed": false
+    },
+    "secret": "secretkey",
+    "expirationTime": "1970-01-01T00:15",
+    "amountToPay": 25
+  }
+}
+
+echo "===\n===Confirming the reservation\n==="
+===
+===Confirming the reservation
+===
+curl --header "Content-Type: application/json" \
+  --data '{"secret": "secretkey"}' \
+  'http://localhost:8080/reservations/11/confirm' | jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   302  100   279  100    23   6065    500 --:--:-- --:--:-- --:--:--  6565
+{
+  "reservation": {
+    "id": "11",
+    "screening": {
+      "id": "1",
+      "movie": {
+        "id": "1",
+        "title": "Gone with the Wind"
+      },
+      "roomName": "Room 1",
+      "dateTime": "1970-01-01T01:00"
+    },
+    "name": "Piotr Jander",
+    "ticketsBreakdown": {
+      "adults": 1,
+      "students": 0,
+      "children": 0
+    },
+    "seats": [
+      {
+        "row": "II",
+        "name": "2"
+      }
+    ],
+    "confirmed": true
+  }
+}
